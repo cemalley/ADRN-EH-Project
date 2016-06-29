@@ -2,7 +2,6 @@
 
 # DEPENDENCY: GNU PARALLEL
 
-
 doit(){
   # This function currently will split genome VCF files by chromosome.
 
