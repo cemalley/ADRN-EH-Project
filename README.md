@@ -2,7 +2,7 @@
 
 This repository houses all pipeline programs for the Atopic Dermatitis Research Network and the project specializing in Ezcema herpaticum. These materials were first written by several researchers, and curated by Claire Malley starting on June 28 2016.
 
-# People
+## People
 
 Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Nicholas Rafaels (1), Aniket Shetty (1), Kruthika Iyer (2), Claire Malley (2), Alex Winters (2), Rasika Mathias (PI, 2)
 
