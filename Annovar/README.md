@@ -19,7 +19,7 @@ The programs can of course be test run on a desktop computer with a bash shell e
 2. A summary of known and novel variants per chromosome.
 
 ## Order of operations
-The last line of each of the following has the exact command used to run on the cluster system. Read each file and uncomment/comment out the appropriate GNU parallel command as indicated.
+The last line of each of the following has the exact "qsub" command used to run on the cluster system. Read each file and uncomment/comment out the appropriate GNU parallel command as indicated.
 
 1. annovar-download-hg19.sh
 2. split-vcf-by-chr.sh
