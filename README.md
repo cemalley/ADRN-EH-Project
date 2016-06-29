@@ -4,7 +4,7 @@ This repository houses all pipeline programs for the Atopic Dermatitis Research 
 
 # People
 
-Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Aniket Shetty (1), Kruthika Iyer (2), Claire Malley (2), Alex Winters (2), Nicholas Rafaels (1), Rasika Mathias (PI, 2)
+Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Nicholas Rafaels (1), Aniket Shetty (1), Kruthika Iyer (2), Claire Malley (2), Alex Winters (2), Rasika Mathias (PI, 2)
 
 # Current institutional affiliations:
 
@@ -14,10 +14,11 @@ Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Aniket Shetty (1), Kr
 
 # Institutional websites:
 
-1. UC Denver BIPM http://www.ucdenver.edu/academics/colleges/medicalschool/departments/medicine/BIPM/Pages/BIPMhome.aspx
+1. UC Denver BIPM http://bit.ly/293uKKq
 
-2a. JHU AAC http://www.hopkinsmedicine.org/allergy/aac.html
-2b. Mathias directory page http://www.hopkinsmedicine.org/profiles/results/directory/profile/1019516/rasika-mathias
+2. JHU AAC http://bit.ly/290bThQ
+
+3. Mathias directory page http://bit.ly/2990qC8
 
 # Recent publication
 
