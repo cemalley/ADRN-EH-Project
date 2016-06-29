@@ -1,4 +1,4 @@
-# Mathias lab ADRN EH Project
+# The ADRN EH Project
 
 This repository houses all pipeline programs for the Atopic Dermatitis Research Network and the project specializing in ezcema herpaticum. These materials were first written by several researchers, and curated by Claire Malley starting on June 28 2016. Anyone is free to use these materials under the GNU 3.0 license (see LICENSE.txt).
 
