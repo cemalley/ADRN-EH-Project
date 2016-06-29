@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Claire Malley
+# https://github.com/cemalley/ADRN-EH-Project
 # DEPENDENCY: GNU PARALLEL
 
 doit(){
