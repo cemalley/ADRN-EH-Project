@@ -2,7 +2,7 @@
 
 # Extract specific SNPs by rsID from a VCF, using VCFtools.
 
-# Move to the directory you want to create new VCF files in/
+# Move to the directory you want to create new VCF files in - edit as necessary
 
 cd /dcl01/mathias/data/ADRN_EH/common_analysis/by_chr
 
