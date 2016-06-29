@@ -10,7 +10,7 @@ Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Nicholas Rafaels (1),
 
 1. Division of Biomedical Informatics & Personalized Medicine at the University of Colorado, Department of Medicine, Aurora, CO
 
-2. Asthma and Allergy Center at the Johns Hopkins University, School of Medicine, Baltimore, MD.
+2. Asthma and Allergy Center at the Johns Hopkins University, School of Medicine, Baltimore, MD
 
 ## Institutional websites
 
