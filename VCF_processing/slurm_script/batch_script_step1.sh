@@ -18,7 +18,7 @@ if [ "$curr_var" != "" ]; then
 
 id_name=`echo $curr_var | awk 'END {print $1}'`                 #### Assigning the varaible with each file name 
 #echo ${id_name}
-sbatch /gpfs/barnes_home/shettyan/scripts/test_script.sh ${id_name} ### Submitting the job scripts for each file 
+sbatch /gpfs/barnes_home/shettyan/scripts/step1.sh ${id_name} ### Submitting the job scripts for each file 
 sleep 1 # pause 
 fi
 done
