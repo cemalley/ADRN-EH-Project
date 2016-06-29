@@ -22,4 +22,4 @@ Mathias directory page http://bit.ly/2990qC8
 
 ## Recent publication
 
-Mathias, R.A., Weinberg, A., 2013. Atopic dermatitis complicated by eczema herpeticum is associated with HLA B7 and reduced interferon‐γ‐producing CD8+ T cells. British Journal of Dermatology. doi:10.1111/bjd.12382
+Mathias, R.A., Weinberg, A., 2013. Atopic dermatitis complicated by eczema herpeticum is associated with HLA B7 and reduced interferon‐γ‐producing CD8+ T cells. British Journal of Dermatology. doi:10.1111/bjd.12382 http://onlinelibrary.wiley.com/doi/10.1111/bjd.12382/abstract
