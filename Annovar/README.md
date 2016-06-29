@@ -6,13 +6,12 @@ Although there are documentation FAQs located on the above site, I'd like to sha
 
 # Dependencies
 1. ANNOVAR program and appropriate sequence databases. http://annovar.openbioinformatics.org/en/latest/user-guide/download/#annovar-main-package
-
 2. GNU Parallel must be installed on the cluster system which the shell scripts are submitted to. https://www.gnu.org/software/parallel/
 
-# Input
+# Primary input
 1. A file containing the WGS sample IDs to be analyzed, one per line. The sample ID ("LP...") is used to locate the appropriate file as well as format the output filenames.
+2. Genome VCF files, which Illumina should supply in zipped (".vcf.gz") format.
 
 # Final output
 1. Annotated Variant Call Files, one per chromosome, each containing all samples.
-
 2. A summary of known and novel variants per chromosome.
