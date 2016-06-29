@@ -7,6 +7,7 @@ Although there are documentation FAQs located on the above site, I'd like to sha
 ## Dependencies
 1. ANNOVAR program and appropriate sequence databases. http://annovar.openbioinformatics.org/en/latest/user-guide/download/#annovar-main-package
 2. GNU Parallel must be installed on the cluster system to which the shell scripts are submitted. https://www.gnu.org/software/parallel/
+
 The programs can of course be test run on a desktop computer with a bash shell environment.
 
 ## Primary input
