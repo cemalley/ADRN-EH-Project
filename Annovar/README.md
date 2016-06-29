@@ -6,7 +6,7 @@ Although there are documentation FAQs located on the above site, I'd like to sha
 
 ## Dependencies
 1. ANNOVAR program and appropriate sequence databases. http://annovar.openbioinformatics.org/en/latest/user-guide/download/#annovar-main-package
-2. GNU Parallel must be installed on the cluster system which the shell scripts are submitted to. https://www.gnu.org/software/parallel/
+2. GNU Parallel must be installed on the cluster system to which the shell scripts are submitted. https://www.gnu.org/software/parallel/
 
 ## Primary input
 1. A file containing the WGS sample IDs to be analyzed, one per line. The sample ID ("LP...") is used to locate the appropriate file as well as format the output filenames.
@@ -15,3 +15,11 @@ Although there are documentation FAQs located on the above site, I'd like to sha
 ## Final output
 1. Annotated Variant Call Files, one per chromosome, each containing all samples.
 2. A summary of known and novel variants per chromosome.
+
+## Order of operations
+The last line of each of the following has the exact command used to run on the cluster system. Read each file and uncomment/comment out the appropriate GNU parallel command as indicated.
+
+1. annovar-download-hg19.sh
+2. split-vcf-by-chr.sh
+3. merge-parallelized.sh
+4. annovar-run.sh (to be uploaded)
