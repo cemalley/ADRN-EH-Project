@@ -1,0 +1,3 @@
+cd /dcl01/barnes/data/ADRN_WGS/ADRN_chr17/761MultiVCF
+/legacy/nexsan2/disk2/ctsa/mathias/Software/vcftools/vcftools --gzvcf ADRN_chr17_731_ADNA_SNPs_filled_GQ30_DP7_segdup_new_v2.recode.vcf.bgzf.gz --positions ADNA_731_vassoc_chrpos.txt --missing --plink --out ADRN_chr17_731_ADNA_SNPs_filled_GQ30_DP7_segdup_new_v2_vassoc_pos
+/legacy/nexsan2/disk2/ctsa/mathias/Software/plink --file ADRN_chr17_731_ADNA_SNPs_filled_GQ30_DP7_segdup_new_v2_vassoc_pos --pheno /home/jhmi/mboorgu1/ADRN_731_pheno_NA_rm.txt --noweb --allow-no-sex --hardy --hwe 0 --test-missing --out ADRN_chr17_731_ADNA_SNPs_filled_GQ30_DP7_segdup_new_v2_vassoc_pos_diffmiss_hardy
