@@ -1,6 +1,6 @@
 # Mathias lab ADRN EH Project
 
-This repository houses all pipeline programs for the Atopic Dermatitis Research Network and the project specializing in Ezcema herpaticum. These materials were first written by several researchers, and curated by Claire Malley starting on June 28 2016.
+This repository houses all pipeline programs for the Atopic Dermatitis Research Network and the project specializing in ezcema herpaticum. These materials were first written by several researchers, and curated by Claire Malley starting on June 28 2016.
 
 ## People
 
@@ -14,11 +14,11 @@ Boorgula, Meher (1), Sameer Chavan (1), Michelle Daya (1), Nicholas Rafaels (1),
 
 ## Institutional websites
 
-1. UC Denver BIPM http://bit.ly/293uKKq
+UC Denver BIPM http://bit.ly/293uKKq
 
-2. JHU AAC http://bit.ly/290bThQ
+JHU AAC http://bit.ly/290bThQ
 
-3. Mathias directory page http://bit.ly/2990qC8
+Mathias directory page http://bit.ly/2990qC8
 
 ## Recent publication
 
