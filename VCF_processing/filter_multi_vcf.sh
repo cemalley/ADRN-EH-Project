@@ -1,0 +1,1 @@
+/nexsan2/disk2/ctsa/mathias/Software/vcftools/vcftools --gzvcf ADRN_SNPs_chr05_761_filled_merged.vcf.gz --recode-INFO-all --minDP 7 --minGQ 30 --out ./ADRN_chr05_761_SNPs_filled_GQ30_DP7_segdup --recode --exclude-bed /home/jhmi/schavan/hg19_segdup.txt
