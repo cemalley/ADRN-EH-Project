@@ -24,4 +24,4 @@ The last line of each of the following has the exact "qsub" command used to run 
 1. annovar-download-hg19.sh
 2. split-vcf-by-chr.sh
 3. merge-parallelized.sh
-4. annovar-run.sh (to be uploaded)
+4. annovar-run.sh
