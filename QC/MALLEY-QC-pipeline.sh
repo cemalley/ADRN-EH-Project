@@ -21,7 +21,7 @@ vcftools --vcf /dcl01/mathias/data/ADRN_EH/common_analysis/omni/Genotyping_merge
 
 #5. ADMIXTURE. Change the digit '4' to 2, 3, etc.
 
-#USAGE:  /users/cmalley/apps/admixture_linux-1.3.0/./admixture <plink .bed file> <# populations>
+#USAGE:  /users/cmalley/apps/admixture_linux-1.3.0/./admixture <plink .bed file> <# populations> <# cores to use>
 /users/cmalley/apps/admixture_linux-1.3.0/./admixture Genotyping_pruned.bed 4 -j4
 
 exit 0
