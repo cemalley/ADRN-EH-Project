@@ -32,15 +32,15 @@ indexedbam="/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/${sample}.marked_dupl
 ## Make a temporary directory for SAMTOOLS and Picard to use, unless it already exists ##
 DIRECTORY="/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/tmp"
 if [ ! -d "$DIRECTORY" ]; then
-  mkdir /dcl01/mathias/data/ADRN_EH/${sample}/Assembly/tmp
+  mkdir $DIRECTORY
 fi
 
-java -d64 -Djava.io.tmpdir=/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/tmp -XX:MaxHeapSize=512m -Xms12g -Xmx13g -jar $PICARD SortSam \
+java -d64 -Djava.io.tmpdir=$DIRECTORY -XX:MaxHeapSize=512m -Xms12g -Xmx13g -jar $PICARD SortSam \
       I=$marked_duplicates_bam \
       O=$sortedbam \
       SORT_ORDER=coordinate \
       VALIDATION_STRINGENCY=LENIENT \
-      TMP_DIR=/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/tmp \
+      TMP_DIR=$DIRECTORY \
       MAX_RECORDS_IN_RAM=100000
 
 samtools index -b $sortedbam $indexedbam
