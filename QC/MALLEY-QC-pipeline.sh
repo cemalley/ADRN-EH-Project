@@ -37,6 +37,6 @@ exit 0
 
 #qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G plink-QC.sh
 
-# or, for 
+# or, for ADMIXTURE with 4 possible K:
 
 #qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G -pe local 4 plink-QC.sh
