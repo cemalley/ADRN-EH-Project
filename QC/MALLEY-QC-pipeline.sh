@@ -19,10 +19,17 @@ vcftools --vcf /dcl01/mathias/data/ADRN_EH/common_analysis/omni/Genotyping_merge
 
 /home/other/cmalley/apps/plink-1.90/./plink --bed Genotyping_LD.bed --bim Genotyping_LD.bim --fam Genotyping_LD.fam --extract Genotyping_keep_SNPs.txt --make-bed --out Genotyping_pruned
 
-#5. ADMIXTURE. Change the digit '4' to 2, 3, etc.
+#5. ADMIXTURE.
 
 #USAGE:  /users/cmalley/apps/admixture_linux-1.3.0/./admixture <plink .bed file> <# populations> <# cores to use>
-/users/cmalley/apps/admixture_linux-1.3.0/./admixture Genotyping_pruned.bed 4 -j4
+# For just K = 4:
+# /users/cmalley/apps/admixture_linux-1.3.0/./admixture Genotyping_pruned.bed 4 -j4
+
+# For K=1-4 with validation, use second runtime command; see ADMIXTURE manual for interpretation:
+for K in 1 2 3 4
+  do
+    /users/cmalley/apps/admixture_linux-1.3.0/./admixture --cv Genotyping_pruned.bed $K -j4 | tee log${K}.out
+  done
 
 exit 0
 
@@ -30,6 +37,6 @@ exit 0
 
 #qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G plink-QC.sh
 
-# or
+# or, for 
 
 #qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G -pe local 4 plink-QC.sh
