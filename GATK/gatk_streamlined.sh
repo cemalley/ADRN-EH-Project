@@ -5,8 +5,6 @@
 # Dependencies: GNU PARALLEL, SAMTOOLS, GATK, JAVA 1.8
 
 
-main(){
-
 ## Program paths ##
 GATK=/users/cmalley/apps/gatk/GenomeAnalysisTK.jar
 PICARD=/users/cmalley/apps/picard-tools-2.4.1/picard.jar
@@ -51,45 +49,43 @@ samtools index -b $sortedbam $indexedbam
 
 ##
 
-sample_path=("/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/${sample}.marked_duplicates.sorted.bam")
+#sample_path=("/dcl01/mathias/data/ADRN_EH/${sample}/Assembly/${sample}.marked_duplicates.sorted.bam")
 
-for current_bam in ${sample_path[@]}
-  do
+recal_report_path=("/dcl01/mathias/data/ADRN_EH/common_analysis/gatk/recal_reports")
+
     #1. Base recalibration: make recalibration report
 
     java -Xmx4g -jar $GATK \
     -T BaseRecalibrator \
-    -I $current_bam \
-    -R $reference \
-    -o ${sample}.recalibration_report.grp \
+    -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
+    -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
+    -o $recal_report_path/$sample.recalibration_report.grp \
     --num_cpu_threads_per_data_thread 1 \
-    --num_threads 4
+    #--num_threads 4
 
     #2. Base recalibration: make recalibrated bam
 
     java -jar $GATK \
     -T PrintReads \
-    -R $reference \
-    -I $current_bam \
-    -BQSR ${sample}.recalibration_report.grp \
-    -o $recalibrated_bam \
+    -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
+    -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
+    -BQSR $recal_report_path/$sample.recalibration_report.grp \
+    -o /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$smaple.recalibrated_bam.bam \
     --num_cpu_threads_per_data_thread 4
 
     #3. Base recalibration: make recalibration plots (validation)
 
     java -jar $GATK \
     -T AnalyzeCovariates \
-    -R $reference \
-    -before ${sample}.recal_data.table \
-    -after ${sample}.post_recal_data.table \
-    -plots ${sample}.recalibration_plots.pdf
+    -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
+    -before $sample.recal_data.table \
+    -after $sample.post_recal_data.table \
+    -plots $sample.recalibration_plots.pdf
 
-  done
-}
-export -f main
+
 
 #parallel -j 10 main :::: /users/cmalley/adrn/lplist-usable.txt
-parallel -j 5 main :::: /users/cmalley/adrn/lplist-justone.txt
+#parallel -j 5 main :::: /users/cmalley/adrn/lplist-justone.txt
 #For quick reference, the above sample ID is LP6005948-DNA_G11
 
 exit 0
