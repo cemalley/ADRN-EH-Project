@@ -53,13 +53,13 @@ samtools index -b $sortedbam $indexedbam
 
 recal_report_path=("/dcl01/mathias/data/ADRN_EH/common_analysis/gatk/recal_reports")
 
-    #1. Base recalibration: make recalibration report
+    #1. Base recalibration: make pre-recalibration report
 
     java -Xmx4g -jar $GATK \
     -T BaseRecalibrator \
     -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
     -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
-    -o $recal_report_path/$sample.recalibration_report.grp \
+    -o $recal_report_path/$sample.pre_recalibration_report.grp \
     --num_cpu_threads_per_data_thread 1 \
     #--num_threads 4
 
@@ -72,14 +72,24 @@ recal_report_path=("/dcl01/mathias/data/ADRN_EH/common_analysis/gatk/recal_repor
     -BQSR $recal_report_path/$sample.recalibration_report.grp \
     -o /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$smaple.recalibrated_bam.bam \
     --num_cpu_threads_per_data_thread 4
+    
+    #3. Base recalibration: make post-recalibration report
 
-    #3. Base recalibration: make recalibration plots (validation)
+    java -Xmx4g -jar $GATK \
+    -T BaseRecalibrator \
+    -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
+    -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
+    -o $recal_report_path/$sample.post_recalibration_report.grp \
+    --num_cpu_threads_per_data_thread 1 \
+    #--num_threads 4
+
+    #4. Base recalibration: make recalibration plots (validation)
 
     java -jar $GATK \
     -T AnalyzeCovariates \
     -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
-    -before $sample.recal_data.table \
-    -after $sample.post_recal_data.table \
+    -before $recal_report_path/$sample.pre_recalibration_report.grp \
+    -after $recal_report_path/$sample.post_recalibration_report.grp \
     -plots $sample.recalibration_plots.pdf
 
 
@@ -97,7 +107,7 @@ exit 0
 
 # The HaplotypeCaller will need to be run separately once all samples have been processed with this script. The following will be the GATK command:
 
-  #4. Haplotype Caller: find new variants
+  #5. Haplotype Caller: find new variants
 
   #java -jar GenomeAnalysisTK.jar \
   #  -R $reference \
