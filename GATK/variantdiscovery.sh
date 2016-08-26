@@ -15,7 +15,7 @@ java -XX:-UseParallelGC -jar $GATK \
  -T HaplotypeCaller \
  -I [absolute path to bam1] \
  -I [absolute path to bam2] \
---emitRefConfidence GVCF \
+ --emitRefConfidence GVCF \
  -o $FINALDIR/output.raw.snps.indels.g.vcf \
  -U ALLOW_UNSET_BAM_SORT_ORDER \
  -gt_mode DISCOVERY \
@@ -24,4 +24,6 @@ java -XX:-UseParallelGC -jar $GATK \
 
  exit 0
 
+
+# Runtime command:
 # qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G -pe local 7
