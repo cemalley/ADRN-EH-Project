@@ -102,15 +102,3 @@ exit 0
 
 ## JOB SUBMISSION ##
 # qsub -cwd -l mem_free=20G,h_vmem=21G,h_fsize=300G -pe local 5 gatk_streamlined.sh
-
-## WORK AREA ###
-
-# The HaplotypeCaller will need to be run separately once all samples have been processed with this script. The following will be the GATK command:
-
-  #5. Haplotype Caller: find new variants
-
-  #java -jar GenomeAnalysisTK.jar \
-  #  -R $reference \
-  #  -T HaplotypeCaller \
-  #  -I sample1.bam [-I sample2.bam ...] \
-  #  -o output.raw.snps.indels.vcf
