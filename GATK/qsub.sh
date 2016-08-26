@@ -1,5 +1,5 @@
 #!/bin/bash
-# S. Saini August 4 2016
+# S. Saini and C Malley August 2016
 
 usable_list=/users/cmalley/adrn/lplist-usable.txt
 
