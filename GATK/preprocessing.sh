@@ -77,7 +77,7 @@ recal_report_path=("/dcl01/mathias/data/ADRN_EH/common_analysis/gatk/recal_repor
 
     java -Xmx4g -jar $GATK \
     -T BaseRecalibrator \
-    -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
+    -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.recalibrated.bam \
     -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
     -o $recal_report_path/$sample.post_recalibration_report.grp \
     --num_cpu_threads_per_data_thread 1 
