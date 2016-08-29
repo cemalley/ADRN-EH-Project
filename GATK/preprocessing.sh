@@ -60,7 +60,7 @@ recal_report_path=("/dcl01/mathias/data/ADRN_EH/common_analysis/gatk/recal_repor
     -I /dcl01/mathias/data/ADRN_EH/$sample/Assembly/$sample.marked_duplicates.sorted.bam \
     -R /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta \
     -o $recal_report_path/$sample.pre_recalibration_report.grp \
-    --num_cpu_threads_per_data_thread 1 \
+    --num_cpu_threads_per_data_thread 1 
     #--num_threads 4
 
     #2. Base recalibration: make recalibrated bam
