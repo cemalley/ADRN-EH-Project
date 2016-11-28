@@ -253,7 +253,7 @@ AD.vcf.data <- AD.vcf.data[(AD.vcf.data$POS %in% AD.m.data$Start),]
 NA.vcf.data <- NA.vcf.data[(NA.vcf.data$POS %in% NA.m.data$Start),]
 
 # carrier counting preparations -----------------------------
-setwd(current.dir)
+setwd(snps.union.dir)
 sample.names<-c("AD", "NA", "EH")
 
 for (sample.name in sample.names){
@@ -293,7 +293,7 @@ for (sample.name in sample.names){
   batch.name <- paste(current.batch[1], current.batch[length(current.batch)], sep="-")
   out.filename <- paste(sample.name, batch.name, sep=".")
   out.filename <- paste(out.filename, ".genelist.csv", sep="")
-  write.table(genelist, out.filename, sep="\t", col.names=T, row.names=F)
+  write.table(genelist, out.filename, sep="\t", col.names=T, row.names=F, quote=F)
 
   #get all gene names and make empty data frame -------------
   uniq <- unique(unlist(gene.def$gene))
@@ -341,14 +341,13 @@ for (sample.name in sample.names){
 
     # Example filename produced from the above: EH.1-4.carriers.csv
 
-    setwd(current.dir)
+    #setwd(current.dir)
     write.table(carrier.data, file=out.filename, sep="\t", row.names = F, col.names = T, quote=F)
 
     # remove temporary data.frames -------------
-    rm(data.frame.temp, carrier, transposed, merge.1gene, data, genelist)
+    rm(data.frame.temp, carrier, transposed, merge.1gene, data)
   }
   ##END CALCULATIONS ##
 }
 ##END LOOP OVER SAMPLES ##
 q(save = "no")
-
