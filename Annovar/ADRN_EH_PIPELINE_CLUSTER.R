@@ -1,9 +1,9 @@
 ## Program name: ADNA_EH_PIPELINE.R
 ## Programmer: Claire Malley
-## Creater: September 21-26, 2016.
+## Created: September 21-26, 2016.
 ## Updated: November 21, 2016.
 ## Adapted for running entirely on the cluster: November 22-28, 2016.
-## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 1 release). For indels, the program only counts carriers, since SIFT and PolyPhen do not cover indels. It also does not factor in variant rarity for indels (yet).
+## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g_aug2015' database downloaded via Annovar). For indels, the program only counts carriers, since SIFT and PolyPhen do not cover indels.
 ## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH = individuals with eczema herpeticum. ADNA = two groups, AD being individuals with atopic dermatitis, and NA being non-atopic individuals.
 ## Sample sizes: EH = 48, AD = 491, NA = 238.
 
@@ -70,7 +70,10 @@ for (EH.m.file in EH.m.files[c(current.batch)]){
     #for indels:
     #EH.m.data <- subset(EH.m.data, select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "1000g2015aug_all"))
     #for snps#
-    EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == 'D' & EH.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == 'D' & EH.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+
+    #To exclude common variants:
+    EH.m.data <- subset(EH.m.data, EH.m.data$`1000g2015aug_all` == "." | EH.m.data$`1000g2015aug_all` <= 0.05)
   }
 
   else {
@@ -78,7 +81,8 @@ for (EH.m.file in EH.m.files[c(current.batch)]){
     #for indels:
     #EH.m.data.temp <- subset(EH.m.data.temp, select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "1000g2015aug_all"))
     #for snps#
-    EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == 'D' & EH.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == 'D' & EH.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$`1000g2015aug_all` == "." | EH.m.data.temp$`1000g2015aug_all` <= 0.05)
     EH.m.data <- rbind(EH.m.data, EH.m.data.temp)
     rm(EH.m.data.temp)
   }
@@ -89,12 +93,14 @@ EH.m.data <- unique(EH.m.data)
 for (ADNA.m.file in ADNA.m.files[current.batch]){
   if(!exists("ADNA.m.data")){
     ADNA.m.data <- fread(ADNA.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
-    ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == 'D' & ADNA.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
-  }
+    ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == 'D' & ADNA.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$`1000g2015aug_all` == "." | ADNA.m.data$`1000g2015aug_all` <= 0.05)
+    }
 
   else {
     ADNA.m.data.temp <- fread(ADNA.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
-    ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == 'D' & ADNA.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == 'D' & ADNA.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+    ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$`1000g2015aug_all` == "." | ADNA.m.data.temp$`1000g2015aug_all` <= 0.05)
     ADNA.m.data <- rbind(ADNA.m.data, ADNA.m.data.temp)
     rm(ADNA.m.data.temp)
   }
@@ -107,8 +113,6 @@ ADNA.m.data <- unique(ADNA.m.data)
 AD.m.data <- ADNA.m.data
 
 NA.m.data <- ADNA.m.data
-
-rm(ADNA.m.data)
 
 # Do not continue if annotation data.frames do not exist
 if (!exists("AD.m.data")){
@@ -272,13 +276,6 @@ for (sample.name in sample.names){
 
   merge$CHROM.POS <- paste(merge$CHROM, merge$POS, sep = "-")
 
-  # remove common variants --------------
-  # optional step depending on whether this run is all variants or uncommon variants only #
-
-  # legacy # merge <- merge[(!(merge$CHROM.POS %in% data.TGP$CHROM.POS)),]
-
-  # subset merge for positions that are < 0.05 or = 0 in 1000g2015aug frequencies (rare)
-
   merge$gene <- gene.def$gene[match(merge$CHROM.POS,gene.def$Chr.Start)]
 
   merge <- merge[!(is.na(merge$gene) | merge$gene==""), ]
@@ -292,7 +289,11 @@ for (sample.name in sample.names){
 
   batch.name <- paste(current.batch[1], current.batch[length(current.batch)], sep="-")
   out.filename <- paste(sample.name, batch.name, sep=".")
-  out.filename <- paste(out.filename, ".genelist.csv", sep="")
+  # for runs without filtering of common variants:
+  #out.filename <- paste(out.filename, ".genelist.csv", sep="")
+  # for runs with filtering of common variants:
+  out.filename <- paste(out.filename, ".genelist.uncommon.csv", sep="")
+  
   write.table(genelist, out.filename, sep="\t", col.names=T, row.names=F, quote=F)
 
   #get all gene names and make empty data frame -------------
@@ -337,7 +338,8 @@ for (sample.name in sample.names){
     # print out carrier data - sample-specific ------------
     # batch.name variable recycled from section writing out genelist
     out.filename <- paste(sample.name, batch.name, sep=".")
-    out.filename <- paste(out.filename, ".carriers.csv", sep="")
+    # out.filename <- paste(out.filename, ".carriers.csv", sep="")
+    out.filename <- paste(out.filename, ".carriers.uncommon.csv", sep="")
 
     # Example filename produced from the above: EH.1-4.carriers.csv
 
@@ -350,4 +352,56 @@ for (sample.name in sample.names){
   ##END CALCULATIONS ##
 }
 ##END LOOP OVER SAMPLES ##
+
+# merge gene-level carrier counts and variants into master file ---------------
+#batch.carriers <- paste(batch.name, ".carriers.csv", sep="")
+#batch.genelist <- paste(batch.name, ".genelist.csv", sep="")
+
+batch.carriers <- paste(batch.name, ".carriers.uncommon.csv", sep="")
+batch.genelist <- paste(batch.name, ".genelist.uncommon.csv", sep="")
+
+EH.carriers <- fread(paste("EH", batch.carriers, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+EH.genelist <- fread(paste("EH", batch.genelist, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+EH.master <- merge(EH.carriers, EH.genelist, by=c("gene"), all=T)
+
+AD.carriers <- fread(paste("AD", batch.carriers, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+AD.genelist <- fread(paste("AD", batch.genelist, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+AD.master <- merge(AD.carriers, AD.genelist, by=c("gene"), all=T)
+colnames(AD.master)[6] <- "ADNA_alt"
+
+NA.carriers <- fread(paste("NA", batch.carriers, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+NA.genelist <- fread(paste("NA", batch.genelist, sep="."), sep="\t", header=T, stringsAsFactors=F, data.table=F)
+NA.master <- merge(NA.carriers, NA.genelist, by=c("gene"), all=T)
+colnames(NA.master)[6] <- "ADNA_alt"
+
+ADNA.master <- merge(AD.master, NA.master, by=c("gene","chr-pos", "ref", "ADNA_alt"), all=T)
+EHADNA.master <- merge(EH.master, ADNA.master, by=c("gene", "chr-pos", "ref"), all=T)
+
+# add extra annotation information from annotation files ------
+
+if (exists("EHADNA.master")){
+  EH.m.data$`chr-pos` <- paste(EH.m.data$Chr, EH.m.data$Start, sep="-")
+  ADNA.m.data$`chr-pos` <- paste(ADNA.m.data$Chr, ADNA.m.data$Start, sep="-")
+
+  # These are the columns that I want to add to the master file
+  subset.cols <- c("chr-pos","Func.refGene","ExonicFunc.refGene","AAChange.refGene","snp147","SIFT_pred","Polyphen2_HDIV_pred","1000g2015aug_all")
+  EH.m.data.subset <- subset(EH.m.data, select=c(subset.cols))
+  ADNA.m.data.subset <- subset(ADNA.m.data, select=c(subset.cols))
+  M.data.subset <- unique(rbind(EH.m.data.subset, ADNA.m.data.subset))
+  EHADNA.master.anno <- merge(EHADNA.master, M.data.subset, by=c("chr-pos"), all=F)
+}
+
+if (exists("EHADNA.master.anno")){
+  #out.filename <- paste("Snps.union.all", batch.name, sep=".")
+  out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
+  out.filename <- paste(out.filename, ".csv", sep="")
+  write.table(EHADNA.master.anno, file=out.filename, sep="\t", col.names=T, row.names=F, quote=F)
+}
+
+## Quit ----------
 q(save = "no")
+
+#For cluster submission:
+# qsub-R.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER.R
+# Submit with:
+# qsub -cwd -l mem_free=50G,h_vmem=51G,h_fsize=300G qsub-R.sh
