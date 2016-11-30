@@ -57,15 +57,24 @@ chunk <- function(x,n){
 
 # Also run each batch for all variants, then uncommon variants only 
 
-set <- c("all", "uncommon")
+#set <- c("all", "uncommon")
 
 # Begin a batch
 
-for (type in set){
+type <- "all"
+#type <- "uncommon"
+current.batch <- 1:4
+#current.batch <- 5:8
+#current.batch <- 9:12
+#current.batch <- 13:16
+#current.batch <- 17:20
+#current.batch <- 21:22
 
-for (current.batch in chunk(chromosomes, 4)){
-  
-  # select damaging variants in multianno ----------------------------
+
+#for (current.batch in chunk(chromosomes, 4)){ #work in progress with these two loops
+  #for (type in set){
+    
+  # Glob list of annotation files ----------------------------
   
   EH.m.files <- Sys.glob("EH.*.table.hg19_multianno.csv")
   EH.m.files <- EH.m.files[1:22]
@@ -312,7 +321,7 @@ for (current.batch in chunk(chromosomes, 4)){
       out.filename <- paste(out.filename, ".genelist.csv", sep="")
     }
     
-    else {
+    if (type =="uncommon"){
       # for runs with filtering of common variants:
       out.filename <- paste(out.filename, ".genelist.uncommon.csv", sep="")
     }
@@ -366,7 +375,7 @@ for (current.batch in chunk(chromosomes, 4)){
         out.filename <- paste(out.filename, ".carriers.csv", sep="")  
       }
       
-      else {      
+      if (type =="uncommon"){      
         out.filename <- paste(out.filename, ".carriers.uncommon.csv", sep="")
       }
       
@@ -388,7 +397,7 @@ for (current.batch in chunk(chromosomes, 4)){
     batch.genelist <- paste(batch.name, ".genelist.csv", sep="")
   }
   
-  else {
+  if (type =="uncommon"){
     batch.carriers <- paste(batch.name, ".carriers.uncommon.csv", sep="")
     batch.genelist <- paste(batch.name, ".genelist.uncommon.csv", sep="")
   }
@@ -428,16 +437,16 @@ for (current.batch in chunk(chromosomes, 4)){
     if (type =="all"){
       out.filename <- paste("Snps.union.all", batch.name, sep=".")
     }
-    else {
+    if (type =="uncommon"){
       out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
     }
     
     out.filename <- paste(out.filename, ".csv", sep="")
     write.table(EHADNA.master.anno, file=out.filename, sep="\t", col.names=T, row.names=F, quote=F)
   }
-  
-}
-}
+ 
+#}
+#}
 # End of all batches and runs for variant filtering
 
 ## Quit ----------
