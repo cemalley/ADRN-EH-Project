@@ -28,6 +28,8 @@ The last line of each of the following has the exact "qsub" command used to run 
 2. split-vcf-by-chr.sh
 3. merge-parallelized.sh
 4. annovar-run.sh
-5. ADNA_EH_PIPELINE_CLUSTER.R
-6. concatenate-batches.R
-7. visualization.R
+5. subset_multiannos.R
+6. bcftools subsetting (TBD upload)
+7. ADNA_EH_PIPELINE_CLUSTER.R
+8. concatenate-batches.R
+9. visualization.R
