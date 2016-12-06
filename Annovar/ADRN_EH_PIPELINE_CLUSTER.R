@@ -1,13 +1,14 @@
 ## Program name: ADNA_EH_PIPELINE.R
 ## Programmer: Claire Malley
 ## Created: September 21-26, 2016.
-## Updated: November 21, 2016.
-## Adapted for running entirely on the cluster: November 22-28, 2016.
+## Adapted for running entirely on a cluster: November 22-28, 2016.
+## Last major changes: December 6, 2016.
 ## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g2015aug_all' database downloaded via Annovar). For indels, the program cannot consider damaging status, since SIFT and PolyPhen do not cover indels.
 ## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH = individuals with eczema herpeticum. ADNA = two groups, AD being individuals with atopic dermatitis, and NA being non-atopic individuals.
 ## Sample sizes: EH = 48, AD = 491, NA = 238.
 
 # load required packages ---------------------
+# Please install the following if they are not already in the R environment.
 # install.packages("data.table")
 # install.packages("stringr")
 # install.packages("ggplot2")
@@ -26,38 +27,24 @@ library(ggrepel)
 # SNPs directory:
 #snps.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps"
 snps.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps"
-#for ADNA:
+#for ADNA snps:
 ADNA.vcf.dir="/dcl01/mathias/data/ADRN_EH/ADRN"
 
-snps.union.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps/union"
+# ADNA indels still housed here: /dcl01/mathias/data/ADRN_EH/ADRN/transfer
 
-#Local paths
-# Indels directory
-#indels.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/indels"
-# SNPs union directory
-#snps.union.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps/union"
-# SNPs intersection directory
-#snps.intersection.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps/intersection"
+snps.union.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps/union"
+snps.inter.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps/inter"
+
+indels.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-indels"
 
 # Change the following working directory variable for each run of the pipeline.
-current.dir = snps.dir
+current.dir = indels.dir
 
 setwd(current.dir)
 
 # Run the pipeline in batches of four chromosomes (serial batches has been fine).
 
 chromosomes <- c(1:22) # ADNA will only have chromosomes 1-22 analyzed. I subset the list of EH multianno files to chr1-22.
-
-chunk <- function(x,n){
-  f <- sort(rep(1:(trunc(length(x)/n)+1),n))[1:length(x)]
-  return(split(x,f))
-}
-# Chunking function found at http://stackoverflow.com/a/18803998
-
-
-# Also run each batch for all variants, then uncommon variants only 
-
-#set <- c("all", "uncommon")
 
 # Begin a batch
 
@@ -69,10 +56,6 @@ current.batch <- 1:4
 #current.batch <- 13:16
 #current.batch <- 17:20
 #current.batch <- 21:22
-
-
-#for (current.batch in chunk(chromosomes, 4)){ #work in progress with these two loops
-  #for (type in set){
     
   # Glob list of annotation files ----------------------------
   
@@ -88,9 +71,9 @@ current.batch <- 1:4
     if (!exists("EH.m.data")){
       EH.m.data <- fread(EH.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
       #for indels:
-      #EH.m.data <- subset(EH.m.data, select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "1000g2015aug_all"))
+      EH.m.data <- subset(EH.m.data, select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all"))
       #for snps#
-      EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == 'D' & EH.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+     # EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == 'D' | EH.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
       
       #To exclude common variants:
       if (type =="uncommon"){
@@ -101,9 +84,10 @@ current.batch <- 1:4
     else {
       EH.m.data.temp <- fread(EH.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
       #for indels:
-      #EH.m.data.temp <- subset(EH.m.data.temp, select = c("Chr", "Start", "Ref", "Alt", "Func.refGene", "Gene.refGene", "snp147", "1000g2015aug_all"))
+      EH.m.data.temp <- subset(EH.m.data, select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all"))
+      
       #for snps#
-      EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == 'D' & EH.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+     # EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == 'D' | EH.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
       if (type =="uncommon"){
         EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$`1000g2015aug_all` == "." | EH.m.data.temp$`1000g2015aug_all` <= 0.05)
       }
@@ -117,7 +101,12 @@ current.batch <- 1:4
   for (ADNA.m.file in ADNA.m.files[current.batch]){
     if(!exists("ADNA.m.data")){
       ADNA.m.data <- fread(ADNA.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
-      ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == 'D' & ADNA.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+      
+      #for indels:
+      ADNA.m.data <- subset(ADNA.m.data, select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all"))
+      
+      #for snps:
+      #ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == 'D' | ADNA.m.data$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
       if (type =="uncommon"){
         ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$`1000g2015aug_all` == "." | ADNA.m.data$`1000g2015aug_all` <= 0.05)
       }
@@ -125,7 +114,12 @@ current.batch <- 1:4
     
     else {
       ADNA.m.data.temp <- fread(ADNA.m.file, sep=",", header=TRUE, stringsAsFactors=FALSE, data.table=FALSE)
-      ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == 'D' & ADNA.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
+      
+      #for indels:
+      ADNA.m.data.temp <- subset(ADNA.m.data.temp, select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all"))
+      
+      #for snps:
+      #ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == 'D' | ADNA.m.data.temp$Polyphen2_HDIV_pred == 'D', select = c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all"))
       if (type =="uncommon"){
         ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$`1000g2015aug_all` == "." | ADNA.m.data.temp$`1000g2015aug_all` <= 0.05)
       }
@@ -169,17 +163,18 @@ current.batch <- 1:4
   EH.cols <- c(cols, EH.samples)
   
   # I made subset VCF files for damaging sites in a new directory on the cluster.
-  setwd(snps.union.dir)
+  #setwd(snps.union.dir)
   
-  EH.vcf.files <- Sys.glob("EH*\\damaging.union.vcf")
+  #EH.vcf.files <- Sys.glob("EH*\\damaging.union.vcf")
+  
+  EH.vcf.files <- Sys.glob("EH*\\filtered.recode.vcf")
   
   if(exists("EH.vcf.data")){rm(EH.vcf.data)}
   if(exists("ADNA.vcf.data")){rm(ADNA.vcf.data)}
-  
-  
+
   for (EH.vcf.file in EH.vcf.files[current.batch]){
     if (!exists("EH.vcf.data")){
-      EH.vcf.data <- fread(EH.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=1413L)
+      EH.vcf.data <- fread(EH.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=1449L)
       #EH snps: skip 1413L
       #EH indels: skip 1449L
       colnames(EH.vcf.data) <- EH.vcf.data[1, ]
@@ -189,7 +184,7 @@ current.batch <- 1:4
     }
     
     else {
-      EH.vcf.data.temp <- fread(EH.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=1413L)
+      EH.vcf.data.temp <- fread(EH.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=1449L)
       colnames(EH.vcf.data.temp) <- EH.vcf.data.temp[1, ]
       colnames(EH.vcf.data.temp)[1] <- "CHROM"
       EH.vcf.data.temp = EH.vcf.data.temp[-1, ]
@@ -202,11 +197,13 @@ current.batch <- 1:4
   
   EH.vcf.data <- unique(EH.vcf.data)
   
-  ADNA.vcf.files<-Sys.glob("ADNA*\\.damaging.union.vcf")
+  #ADNA.vcf.files<-Sys.glob("ADNA*\\.damaging.union.vcf")
+  setwd("/dcl01/mathias/data/ADRN_EH/ADRN/transfer")
+  ADNA.vcf.files <- Sys.glob("ADNA.*\\.Indels.filtered.recode.vcf")
   
   for (ADNA.vcf.file in ADNA.vcf.files[current.batch]){
     if(!exists("ADNA.vcf.data")){
-      ADNA.vcf.data <- fread(ADNA.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=52L)
+      ADNA.vcf.data <- fread(ADNA.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=15892L)
       # ADNA snps: skip 52L
       #ADNA indels: skip 15892L
       colnames(ADNA.vcf.data) <- ADNA.vcf.data[1, ]
@@ -215,7 +212,7 @@ current.batch <- 1:4
     }
     
     else {
-      ADNA.vcf.data.temp <- fread(ADNA.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=52L)
+      ADNA.vcf.data.temp <- fread(ADNA.vcf.file, header=F, sep="\t", stringsAsFactors = F, data.table = F, skip=15892L)
       # ADNA snps: skip 52L
       #ADNA indels: skip 15892L
       colnames(ADNA.vcf.data.temp) <- ADNA.vcf.data.temp[1, ]
@@ -241,17 +238,18 @@ current.batch <- 1:4
   # simplify genotype data ------------------------------
   # Remove all values right of the genotype in each cell, then replace cell with '1' if the individual carries an alternative allele on either chromosome. This is done in order to sum up carriers next.
   
+  # The three genotypes for non-carriers are '0/0', './0', or '0/.'. I use the following regex in order to accomodate multiple alternative alleles. In indels, I notice there are at times 15 alt alleles at one position.
+  
   for(i in names(NA.vcf.data[,-c(1:9)])){
-    NA.vcf.data[[i]] <- (1*grepl("1|2|3|4", sub(':.*', '', NA.vcf.data[[i]]), perl= TRUE))
+    NA.vcf.data[[i]] <- (1*!(grepl("0/0|\\./\\.|\\./0|0/\\.", sub(':.*', '', NA.vcf.data[[i]]), perl= TRUE)))
   }
-  # note: some VCF data have multiple alternative alleles per row. I consider 1-4 alt alleles here.
   
   for(i in names(AD.vcf.data[,-c(1:9)])){
-    AD.vcf.data[[i]] <- (1*grepl("1|2|3|4", sub(':.*', '', AD.vcf.data[[i]]), perl= TRUE))
+    AD.vcf.data[[i]] <- (1*!(grepl("0/0|\\./\\.|\\./0|0/\\.", sub(':.*', '', AD.vcf.data[[i]]), perl= TRUE)))
   }
   
   for(i in names(EH.vcf.data[,-c(1:9)])){
-    EH.vcf.data[[i]] <- (1*grepl("1|2|3|4", sub(':.*', '', EH.vcf.data[[i]]), perl= TRUE))
+    EH.vcf.data[[i]] <- (1*!(grepl("0/0|\\./\\.|\\./0|0/\\.", sub(':.*', '', EH.vcf.data[[i]]), perl= TRUE)))
   }
   
   # remove monomorphic sites -------------------
@@ -283,7 +281,9 @@ current.batch <- 1:4
   NA.vcf.data <- NA.vcf.data[(NA.vcf.data$POS %in% NA.m.data$Start),]
   
   # carrier counting preparations -----------------------------
-  setwd(snps.union.dir)
+  #setwd(snps.union.dir)
+  setwd(indels.dir)
+  
   sample.names<-c("AD", "NA", "EH")
   
   for (sample.name in sample.names){
@@ -425,8 +425,11 @@ current.batch <- 1:4
     EH.m.data$`chr-pos` <- paste(EH.m.data$Chr, EH.m.data$Start, sep="-")
     ADNA.m.data$`chr-pos` <- paste(ADNA.m.data$Chr, ADNA.m.data$Start, sep="-")
     
-    # These are the columns that I want to add to the master file
-    subset.cols <- c("chr-pos","Func.refGene","ExonicFunc.refGene","AAChange.refGene","snp147","SIFT_pred","Polyphen2_HDIV_pred","1000g2015aug_all")
+    # These are the columns that I want to add to the master file for snps:
+    #subset.cols <- c("chr-pos","Func.refGene","ExonicFunc.refGene","AAChange.refGene","snp147","SIFT_pred","Polyphen2_HDIV_pred","1000g2015aug_all")
+    
+    # And for indels:
+    subset.cols <- c("chr-pos","Func.refGene","ExonicFunc.refGene","AAChange.refGene","snp147","1000g2015aug_all")
     EH.m.data.subset <- subset(EH.m.data, select=c(subset.cols))
     ADNA.m.data.subset <- subset(ADNA.m.data, select=c(subset.cols))
     M.data.subset <- unique(rbind(EH.m.data.subset, ADNA.m.data.subset))
@@ -435,18 +438,18 @@ current.batch <- 1:4
   
   if (exists("EHADNA.master.anno")){
     if (type =="all"){
-      out.filename <- paste("Snps.union.all", batch.name, sep=".")
+      #out.filename <- paste("Snps.union.all", batch.name, sep=".")
+      out.filename <- paste("Indels.all", batch.name, sep=".")
     }
     if (type =="uncommon"){
-      out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
+      #out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
+      out.filename <- paste("Indels.uncommon", batch.name, sep=".")
     }
     
     out.filename <- paste(out.filename, ".csv", sep="")
     write.table(EHADNA.master.anno, file=out.filename, sep="\t", col.names=T, row.names=F, quote=F)
   }
  
-#}
-#}
 # End of all batches and runs for variant filtering
 
 ## Quit ----------
