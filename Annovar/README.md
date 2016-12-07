@@ -29,7 +29,7 @@ The last line of each of the following has the exact "qsub" command used to run 
 3. merge-parallelized.sh
 4. annovar-run.sh
 5. subset_multiannos.R
-6. bcftools subsetting (TBD upload)
+6. subset_vcf_regions_loop_qsub.sh (runs subset_vcf_regions_loop.sh in parallel by chromosomes)
 7. ADNA_EH_PIPELINE_CLUSTER.R
 8. concatenate-batches.R
 9. visualization.R
