@@ -18,10 +18,12 @@ The programs can of course be test run on a desktop computer with a bash shell e
 
 ## Final output
 1. Annotated Variant Call Files, one per chromosome, each containing all samples.
-2. Summaries of carrier status and basic visualization to compare sample groups.
+2. Summaries of carrier status, homozygosity counts, and basic visualization to compare sample groups.
 3. Visualization of how variants were annotated, by functional category and sub-categories for exonic variants.
 
 ## Order of operations
+I (Claire) am currently reorganizing the entire pipeline so it requires less human interaction, fewer input files, and new analysis steps. The old, longer pipeline is below.
+
 The last line of each of the following has the exact "qsub" command used to run on the cluster system. For 1-4, read each file and uncomment/comment out the appropriate GNU parallel command as indicated. The R files are 'BATCH' submitted by wrapper qsub shell files, which can be created as described at the end of the programs.
 
 1. annovar-download-hg19.sh
