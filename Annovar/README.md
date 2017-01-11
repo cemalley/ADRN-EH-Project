@@ -22,7 +22,7 @@ The programs can of course be test run on a desktop computer with a bash shell e
 3. Visualization of how variants were annotated, by functional category and sub-categories for exonic variants.
 
 ## Order of operations
-I (Claire) am currently reorganizing the entire pipeline so it requires less human interaction, fewer input files, and new analysis steps. The old, longer pipeline is below.
+I (Claire) am currently reorganizing the entire pipeline so it requires less human interaction, fewer input files, and new analysis steps.
 
 The last line of each of the following has the exact "qsub" command used to run on the cluster system. For 1-4, read each file and uncomment/comment out the appropriate GNU parallel command as indicated. The R files are 'BATCH' submitted by wrapper qsub shell files, which can be created as described at the end of the programs.
 
@@ -30,8 +30,6 @@ The last line of each of the following has the exact "qsub" command used to run 
 2. split-vcf-by-chr.sh
 3. merge-parallelized.sh
 4. annovar-run.sh
-5. subset_multiannos.R
-6. subset_vcf_regions_loop_qsub.sh (runs subset_vcf_regions_loop.sh in parallel by chromosomes)
-7. ADNA_EH_PIPELINE_CLUSTER.R
-8. concatenate-batches.R
-9. visualization.R
+5. ADNA_EH_PIPELINE_CLUSTER.R
+6. concatenate-batches.R
+7. visualization.R
