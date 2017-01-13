@@ -4,7 +4,7 @@
 ## Updated: November 21, 2016.
 ## Adapted for running entirely on the cluster: November 22-28, 2016.
 ## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g2015aug_all' database downloaded via Annovar). For indels, the program cannot consider damaging status, since SIFT and PolyPhen do not cover indels.
-## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH = individuals with eczema herpeticum. ADNA = two groups, AD being individuals with atopic dermatitis, and NA being non-atopic individuals.
+## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH are individuals with eczema herpeticum. ADNA = two groups, AD are individuals with atopic dermatitis, and NA are non-atopic individuals.
 ## Sample sizes: EH = 48, AD = 491, NA = 238.
 
 # load required packages ---------------------
@@ -49,10 +49,12 @@ current.dir = snps.dir
 
 setwd(current.dir)
 
-# Run the pipeline in batches of four chromosomes (serial batches has been fine).
+# Run the pipeline in parallel batches of four chromosomes, except the last batch which has 2 chr.
 
 # Begin a batch
 
+venn <- "inter"
+#venn <- "union"
 type <- "all"
 #type <- "uncommon"
 current.batch <- 1:4
@@ -67,10 +69,12 @@ current.batch <- 1:4
 # Glob list of annotation files ----------------------------
 
 EH.m.files <- Sys.glob("EH*\\snps.split.table.hg19_multianno.txt")
+# testing - EH.m.files <- "EH.chr22.snps.split.table.hg19_multianno.txt"
+# ADNA.m.files <- "ADNA.chr22.snps.split.table.hg19_multianno.txt"
 ADNA.m.files <- Sys.glob("ADNA*\\.snps.split.table.hg19_multianno.txt")
 
 ADNA.header <- names(fread("/dcl01/barnes/data/adrneh/anno/ADNA-snp-cols.txt", sep="\t", data.table=F, header=T))
-#locally: ADNA.sample.IDs <- names(fread("ADNA-cols.txt", sep="\t", data.table=F, header=T))
+#locally: ADNA.header <- names(fread("ADNA-snp-cols.txt", sep="\t", data.table=F, header=T))
 ADNA.sample.IDs <- ADNA.header[58:length(ADNA.header)]
 
 EH.header <- names(fread("/dcl01/barnes/data/adrneh/anno/EH-snp-cols.txt", sep="\t", data.table=F, header=T))
@@ -88,7 +92,15 @@ for (EH.m.file in EH.m.files[c(current.batch)]){
     EH.m.data <- fread(EH.m.file, sep="\t", header=F, stringsAsFactors=F, data.table=F, skip=1L)
     names(EH.m.data) <- EH.header
     EH.m.data <- subset(EH.m.data, select = c(annovar.keep.cols, EH.sample.IDs))
-    EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == "D" | EH.m.data$Polyphen2_HDIV_pred == "D")
+    
+    if (venn =="union"){
+      EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == "D" | EH.m.data$Polyphen2_HDIV_pred == "D")
+    }
+    
+    if (venn =="inter"){
+      EH.m.data <- subset(EH.m.data, EH.m.data$SIFT_pred == "D" & EH.m.data$Polyphen2_HDIV_pred == "D")
+    }
+    
     EH.m.data <- subset(EH.m.data, EH.m.data$Func.refGene == "exonic")
     EH.m.data <- subset(EH.m.data, EH.m.data$ExonicFunc.refGene == "nonsynonymous SNV" | EH.m.data$ExonicFunc.refGene == "frameshift" | EH.m.data$ExonicFunc.refGene == "missense" | EH.m.data$ExonicFunc.refGene == "stopgain" | EH.m.data$ExonicFunc.refGene == "stoploss")
     
@@ -102,7 +114,15 @@ for (EH.m.file in EH.m.files[c(current.batch)]){
     EH.m.data.temp <- fread(EH.m.file, sep="\t", header=F, stringsAsFactors=F, data.table=F, skip=1L)
     names(EH.m.data.temp) <- EH.header
     EH.m.data.temp <- subset(EH.m.data.temp, select = c(annovar.keep.cols, EH.sample.IDs))
-    EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == "D" | EH.m.data.temp$Polyphen2_HDIV_pred == "D")
+    
+    if (venn =="union"){
+      EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == "D" | EH.m.data.temp$Polyphen2_HDIV_pred == "D")
+    }
+    
+    if (venn =="inter"){
+      EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$SIFT_pred == "D" & EH.m.data.temp$Polyphen2_HDIV_pred == "D")
+    }
+    
     EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$Func.refGene == "exonic")
     EH.m.data.temp <- subset(EH.m.data.temp, EH.m.data.temp$ExonicFunc.refGene == "nonsynonymous SNV" | EH.m.data.temp$ExonicFunc.refGene == "frameshift" | EH.m.data.temp$ExonicFunc.refGene == "missense" | EH.m.data.temp$ExonicFunc.refGene == "stopgain" | EH.m.data.temp$ExonicFunc.refGene == "stoploss")
     
@@ -119,7 +139,15 @@ for (ADNA.m.file in ADNA.m.files[c(current.batch)]){
     ADNA.m.data <- fread(ADNA.m.file, sep="\t", header=F, stringsAsFactors=F, data.table=F, skip=1L)
     names(ADNA.m.data) <- ADNA.header
     ADNA.m.data <- subset(ADNA.m.data, select = c(annovar.keep.cols, ADNA.sample.IDs))
-    ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == "D" | ADNA.m.data$Polyphen2_HDIV_pred == "D")
+    
+    if (venn =="union"){
+      ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == "D" | ADNA.m.data$Polyphen2_HDIV_pred == "D")
+    }
+    
+    if (venn =="inter"){
+      ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$SIFT_pred == "D" & ADNA.m.data$Polyphen2_HDIV_pred == "D")
+    }
+    
     ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$Func.refGene == "exonic")
     ADNA.m.data <- subset(ADNA.m.data, ADNA.m.data$ExonicFunc.refGene == "nonsynonymous SNV" | ADNA.m.data$ExonicFunc.refGene == "frameshift" | ADNA.m.data$ExonicFunc.refGene == "missense" | ADNA.m.data$ExonicFunc.refGene == "stopgain" | ADNA.m.data$ExonicFunc.refGene == "stoploss")
     
@@ -133,7 +161,15 @@ for (ADNA.m.file in ADNA.m.files[c(current.batch)]){
     ADNA.m.data.temp <- fread(ADNA.m.file, sep="\t", header=F, stringsAsFactors=F, data.table=F, skip=1L)
     names(ADNA.m.data.temp) <- ADNA.header
     ADNA.m.data.temp <- subset(ADNA.m.data.temp, select = c(annovar.keep.cols, ADNA.sample.IDs))
-    ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == "D" | ADNA.m.data.temp$Polyphen2_HDIV_pred == "D")
+    
+    if (venn =="union"){
+      ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == "D" | ADNA.m.data.temp$Polyphen2_HDIV_pred == "D")
+    }
+    
+    if (venn =="inter"){
+      ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$SIFT_pred == "D" & ADNA.m.data.temp$Polyphen2_HDIV_pred == "D")
+    }
+    
     ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$Func.refGene == "exonic")
     ADNA.m.data.temp <- subset(ADNA.m.data.temp, ADNA.m.data.temp$ExonicFunc.refGene == "nonsynonymous SNV" | ADNA.m.data.temp$ExonicFunc.refGene == "frameshift" | ADNA.m.data.temp$ExonicFunc.refGene == "missense" | ADNA.m.data.temp$ExonicFunc.refGene == "stopgain" | ADNA.m.data.temp$ExonicFunc.refGene == "stoploss")
     
@@ -163,6 +199,8 @@ NA.samples <- unlist(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotati
 
 EH.samples <- unlist(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/lplist-usable.txt", data.table = F))
 #locally# EH.samples <- unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/lplist-usable.txt", data.table =F))
+# AD.samples <-unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/AD_all_excl_failed.txt", data.table =F))
+# NA.samples <- unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/NA_excl_failed.txt", data.table =F))
 
 
 # the following joins the first nine columns and the samples that passed QC.
@@ -263,7 +301,7 @@ setwd(current.dir)
 
 sample.names<-c("AD", "NA", "EH")
 
-#testing# sample.name <- c("EH")
+#testing# sample.names <- c("EH")
 for (sample.name in sample.names){
   
   # add column of gene name for every variant-------------
@@ -394,17 +432,16 @@ if (exists("EHADNA.master")){
   # These are the columns that I want to add to the master file for snps:
   subset.cols <- c("KEY", "Chr", "Start", "End", "Ref", "Alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all", "ExAC_ALL")
 
-  # testing: subset.cols <- c("KEY", "Chr", "Start", "End", "Ref", "Alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL")
-  
-  # And for indels:
-  #subset.cols <- c("KEY", "Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL")
   EH.m.data.subset <- subset(EH.m.data, select=c(subset.cols))
   ADNA.m.data.subset <- subset(ADNA.m.data, select=c(subset.cols))
   M.data.subset <- unique(rbind(EH.m.data.subset, ADNA.m.data.subset))
   EHADNA.master.anno <- merge(EHADNA.master, M.data.subset, by=c("KEY", "Chr", "Start", "Ref", "Gene.refGene"), all=T)
   
   # reorder cols
-  EHADNA.master.anno <- subset(EHADNA.master.anno, select=c("KEY", "Chr", "Start", "End", "Ref", "EH_alt", "ADNA_alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL", "SIFT_pred", "Polyphen2_HDIV_pred", "EH_carriers", "EH_variant_level_sum", "EH_het", "EH_hom", "EH_non", "AD_carriers", "AD_variant_level_sum", "AD_het", "AD_hom", "AD_non", "NA_carriers", "NA_variant_level_sum", "NA_het", "NA_hom", "NA_non"))
+  EHADNA.master.anno <- subset(EHADNA.master.anno, select=c("KEY", "Chr", "Start", "End", "Ref", "EH_alt", "ADNA_alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL", "SIFT_pred", "Polyphen2_HDIV_pred", "EH_carriers", "EH_variant_level_sum", "EH_num_variants", "EH_het", "EH_hom", "EH_non", "AD_carriers", "AD_variant_level_sum", "AD_num_variants", "AD_het", "AD_hom", "AD_non", "NA_carriers", "NA_variant_level_sum", "NA_num_variants", "NA_het", "NA_hom", "NA_non"))
+  
+
+
 }
 
 if (exists("EHADNA.master.anno")){
@@ -428,6 +465,8 @@ if (exists("EHADNA.master.anno")){
 q(save = "no")
 
 #For cluster submission:
-# qsub-R.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER.R
+# qsub_R_1_4.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER_v2_1_4_all.R
+# and so on for each qsub, R script pair. just to be safe.
 # Submit with:
 # qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh #Jan 10 note: may not be enough since genotypes are now added to the right.
+#Jan 11 note: it's hopefully enough, with the more specific subsetting.
