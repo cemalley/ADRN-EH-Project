@@ -5,7 +5,7 @@
 ## Adapted for running entirely on the cluster: November 22-28, 2016.
 ## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g2015aug_all' database downloaded via Annovar). For indels, the program cannot consider damaging status, since SIFT and PolyPhen do not cover indels.
 ## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH are individuals with eczema herpeticum. ADNA = two groups, AD are individuals with atopic dermatitis, and NA are non-atopic individuals.
-## Sample sizes: EH = 48, AD = 491, NA = 238.
+## Sample sizes: EH = 49, AD = 492, NA = 239.
 
 # load required packages ---------------------
 # if not installed, use:
@@ -20,22 +20,10 @@ library(plyr)
 
 # SNPs directory:
 snps.dir <- "/dcl01/barnes/data/adrneh/anno"
-#snps.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps"
-#snps.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps"
-#for ADNA snps:
-#ADNA.vcf.dir="/dcl01/mathias/data/ADRN_EH/ADRN"
-# ADNA indels: /dcl01/mathias/data/ADRN_EH/ADRN/transfer
-#snps.union.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps/union"
-#snps.inter.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-snps/inter"
 #indels.dir="/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/Illumina-indels"
 
 #Local paths
-# Indels directory
 #indels.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/Illumina-indels"
-# SNPs union directory
-#snps.union.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps/union"
-# SNPs intersection directory
-#snps.intersection.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/nov17/snps/intersection"
 #snps.dir <- "/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/Illumina-snps"
 
 # Change the following working directory variable for each run of the pipeline.
@@ -48,28 +36,17 @@ setwd(current.dir)
 # Begin a batch
 
 args<-commandArgs(TRUE)
-# args[1] is venn: inter/union/indels
-# args[2] is type: all/uncommon
-# args[3] is current.batch: 1:4 etc
-
 venn <- args[1]
 type <- args[2]
 current.batch <- args[3]
 
 # i.e. will be run from command line as: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
-#venn <- "inter"
-#venn <- "union"
-#venn <- "indels"
-#type <- "all"
-#type <- "uncommon"
-#current.batch <- 1:4
-#current.batch <- 5:8
-#current.batch <- 9:12
-#current.batch <- 13:16
-#current.batch <- 17:20
-#current.batch <- 21:22
-#testing - current.batch <- 1
-#testing on cluster - current.batch <- 13:14
+# args[1] is venn: inter/union/indels
+# args[2] is type: all/uncommon
+# args[3] is current.batch: 1:4 etc
+# venn is either "inter" for intersection of SIFT and PolyPhen, or "union" for the union of the two
+# type is either "all" for variants of all rarities in 1000 Genomes Project, or "uncommon" for only those <= 0.05
+# current.batch is one of the following batches of files: 1:4, 5:8, 9:12, 13:16, 17:20, 21:22
 
 # Glob list of annotation files ----------------------------
 
@@ -485,8 +462,8 @@ if (exists("EHADNA.master.anno")){
 q(save = "no")
 
 #For cluster submission:
-# qsub_R_1_4.sh contains: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
-# and so on for each qsub, Rscript command pair.
+# qsub_R_1_4.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER_v2_1_4_all.R
+# and so on for each qsub, R script pair. just to be safe.
 # Submit with:
 # qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh #Jan 10 note: may not be enough since genotypes are now added to the right.
 #Jan 11 note: it's hopefully enough, with the more specific subsetting.
