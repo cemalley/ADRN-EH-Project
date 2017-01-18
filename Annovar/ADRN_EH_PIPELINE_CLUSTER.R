@@ -11,16 +11,10 @@
 # if not installed, use:
 # install.packages("data.table")
 # install.packages("stringr")
-# install.packages("ggplot2")
-# install.packages("ggthemes")
 # install.packages("plyr")
-# install.packages("ggrepel")
 library(data.table)
 library(stringr)
-library(ggplot2)
-library(ggthemes)
 library(plyr)
-library(ggrepel)
 
 # Working directory locations
 
@@ -53,11 +47,22 @@ setwd(current.dir)
 
 # Begin a batch
 
-venn <- "inter"
+args<-commandArgs(TRUE)
+# args[1] is venn: inter/union/indels
+# args[2] is type: all/uncommon
+# args[3] is current.batch: 1:4 etc
+
+venn <- args[1]
+type <- args[2]
+current.batch <- args[3]
+
+# i.e. will be run from command line as: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
+#venn <- "inter"
 #venn <- "union"
-type <- "all"
+#venn <- "indels"
+#type <- "all"
 #type <- "uncommon"
-current.batch <- 1:4
+#current.batch <- 1:4
 #current.batch <- 5:8
 #current.batch <- 9:12
 #current.batch <- 13:16
@@ -193,14 +198,14 @@ if (!exists("EH.m.data")){
 
 # Read in list of IDs that passed QC for ADNA. This is necessary because the ADNA vcfs contain samples that did not pass QC.
 
-AD.samples <- unlist(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/AD_all_excl_failed.txt", data.table = F))
+AD.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/AD_all_excl_failed.txt", data.table = F, header=F)))
 
-NA.samples <- unlist(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/NA_excl_failed.txt", data.table = F))
+NA.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/NA_excl_failed.txt", data.table = F, header=F)))
 
-EH.samples <- unlist(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/lplist-usable.txt", data.table = F))
-#locally# EH.samples <- unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/lplist-usable.txt", data.table =F))
-# AD.samples <-unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/AD_all_excl_failed.txt", data.table =F))
-# NA.samples <- unlist(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/NA_excl_failed.txt", data.table =F))
+EH.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/lplist-usable.txt", data.table = F, header=F)))
+#locally# EH.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/lplist-usable.txt", data.table =F, header=F)))
+# AD.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/AD_all_excl_failed.txt", data.table =F, header=F)))
+# NA.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/NA_excl_failed.txt", data.table =F, header=F)))
 
 
 # the following joins the first nine columns and the samples that passed QC.
@@ -248,7 +253,7 @@ simplifygeno <- function(n) {
     df[[i]] <- sub('1', 'het', df[[i]])
   }
   
-  # sum for heterzygosity/homozygosity/noncarrier
+  # sum for heterozygosity/homozygosity/noncarrier
   df$het <- rowSums(df == "het")
   df$hom <- rowSums(df == "hom")
   df$non <- rowSums(df == "non")
@@ -446,12 +451,27 @@ if (exists("EHADNA.master")){
 
 if (exists("EHADNA.master.anno")){
   if (type =="all"){
-    out.filename <- paste("Snps.union.all", batch.name, sep=".")
-    #out.filename <- paste("Indels.all", batch.name, sep=".")
+    if (venn =="union"){
+      out.filename <- paste("Snps.union.all", batch.name, sep=".")
+    }
+    if (venn =="inter"){
+      out.filename <- paste("Snps.inter.all", batch.name, sep=".")
+    }
+    if (venn =="indels"){
+      out.filename <- paste("Indels.all", batch.name, sep=".")
+    }
   }
+  
   if (type =="uncommon"){
-    out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
-    #out.filename <- paste("Indels.uncommon", batch.name, sep=".")
+    if (venn =="union"){
+      out.filename <- paste("Snps.union.uncommon", batch.name, sep=".")
+    }
+    if (venn =="inter"){
+      out.filename <- paste("Snps.inter.uncommon", batch.name, sep=".")
+    }
+    if (venn =="indels"){
+      out.filename <- paste("Indels.uncommon", batch.name, sep=".")
+    }
   }
   
   out.filename <- paste(out.filename, ".csv", sep="")
@@ -465,8 +485,9 @@ if (exists("EHADNA.master.anno")){
 q(save = "no")
 
 #For cluster submission:
-# qsub_R_1_4.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER_v2_1_4_all.R
-# and so on for each qsub, R script pair. just to be safe.
+# qsub_R_1_4.sh contains: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
+# and so on for each qsub, Rscript command pair.
 # Submit with:
 # qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh #Jan 10 note: may not be enough since genotypes are now added to the right.
 #Jan 11 note: it's hopefully enough, with the more specific subsetting.
+#Jan 13 note: 100/101G is good.
