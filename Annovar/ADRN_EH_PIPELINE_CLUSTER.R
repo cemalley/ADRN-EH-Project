@@ -1,11 +1,20 @@
-## Program name: ADNA_EH_PIPELINE.R
+## Program name: ADNA_EH_PIPELINE_CLUSTER.R
 ## Programmer: Claire Malley
 ## Created: September 21-26, 2016.
-## Updated: November 21, 2016.
 ## Adapted for running entirely on the cluster: November 22-28, 2016.
+## Latest changes: Rscript submission instead of R CMD BATCH mode.
 ## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g2015aug_all' database downloaded via Annovar). For indels, the program cannot consider damaging status, since SIFT and PolyPhen do not cover indels.
 ## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH are individuals with eczema herpeticum. ADNA = two groups, AD are individuals with atopic dermatitis, and NA are non-atopic individuals.
 ## Sample sizes: EH = 49, AD = 492, NA = 239.
+
+# error handling ------------
+options(error = quote({
+  sink(file="error.txt");
+  dump.frames();
+  print(attr(last.dump,"error.message"));
+  traceback();
+  sink();
+  q()}))
 
 # load required packages ---------------------
 # if not installed, use:
@@ -33,13 +42,20 @@ setwd(current.dir)
 
 # Run the pipeline in parallel batches of four chromosomes, except the last batch which has 2 chr.
 
-# Begin a batch
+# Interpret command arguments to begin a batch -------
 
-args<-commandArgs(TRUE)
-venn <- args[1]
-type <- args[2]
-current.batch <- args[3]
+args <-commandArgs(trailingOnly = TRUE)
+venn <- as.character(args[1])
+type <- as.character(args[2])
+batch <- as.character(args[3])
+if (batch == "1"){current.batch <- 1:4}
+if (batch == "2"){current.batch <- 5:9}
+if (batch == "3"){current.batch <- 10:12}
+if (batch == "4"){current.batch <- 13:16}
+if (batch == "5"){current.batch <- 17:20}
+if (batch == "6"){current.batch <- 21:22}
 
+# local testing: current.batch <- 1 venn <- "inter" type <- "all"
 # i.e. will be run from command line as: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
 # args[1] is venn: inter/union/indels
 # args[2] is type: all/uncommon
@@ -462,9 +478,7 @@ if (exists("EHADNA.master.anno")){
 q(save = "no")
 
 #For cluster submission:
-# qsub_R_1_4.sh contains: R CMD BATCH ADNA_EH_PIPELINE_CLUSTER_v2_1_4_all.R
-# and so on for each qsub, R script pair. just to be safe.
+# qsub_R.sh contains: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R [venn] [type] [batch]
+# and so on for each qsub, R script pair. See beginning of script for arguments.
 # Submit with:
-# qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh #Jan 10 note: may not be enough since genotypes are now added to the right.
-#Jan 11 note: it's hopefully enough, with the more specific subsetting.
-#Jan 13 note: 100/101G is good.
+# qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh
