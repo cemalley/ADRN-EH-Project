@@ -1,8 +1,8 @@
 ## Program name: ADNA_EH_PIPELINE_CLUSTER.R
 ## Programmer: Claire Malley
 ## Created: September 21-26, 2016.
+## Updated: November 21, 2016.
 ## Adapted for running entirely on the cluster: November 22-28, 2016.
-## Latest changes: Rscript submission instead of R CMD BATCH mode.
 ## Purpose: This program takes annotation output from ANNOVAR plus the variant call files and counts carriers per variant and per gene. For SNPs, the program goes a step further to take only sites that are annotated as damaging in SIFT and PolyPhen 2, for both the union and intersection of these sets. Common SNPs in 1000 Genomes Project are also filtered out for SNPs (phase 3 release, the '1000g2015aug_all' database downloaded via Annovar). For indels, the program cannot consider damaging status, since SIFT and PolyPhen do not cover indels.
 ## Jargon: multianno = annotation output file from ANNOVAR. vcf = variant call file. EH are individuals with eczema herpeticum. ADNA = two groups, AD are individuals with atopic dermatitis, and NA are non-atopic individuals.
 ## Sample sizes: EH = 49, AD = 492, NA = 239.
@@ -34,7 +34,7 @@ snps.dir <- "/dcl01/barnes/data/adrneh/anno"
 #Local paths
 #indels.dir="/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/Illumina-indels"
 #snps.dir <- "/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/Illumina-snps"
-
+#snps.dir <- "/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/backfill"
 # Change the following working directory variable for each run of the pipeline.
 current.dir = snps.dir
 
@@ -43,40 +43,33 @@ setwd(current.dir)
 # Run the pipeline in parallel batches of four chromosomes, except the last batch which has 2 chr.
 
 # Interpret command arguments to begin a batch -------
-
-args <-commandArgs(trailingOnly = TRUE)
-venn <- as.character(args[1])
-type <- as.character(args[2])
-batch <- as.character(args[3])
-if (batch == "1"){current.batch <- 1:4}
-if (batch == "2"){current.batch <- 5:9}
-if (batch == "3"){current.batch <- 10:12}
-if (batch == "4"){current.batch <- 13:16}
-if (batch == "5"){current.batch <- 17:20}
-if (batch == "6"){current.batch <- 21:22}
-
-# local testing: current.batch <- 1 venn <- "inter" type <- "all"
-# i.e. will be run from command line as: Rscript ADNA_EH_PIPELINE_CLUSTER_v2.R inter all 1:4
-# args[1] is venn: inter/union/indels
-# args[2] is type: all/uncommon
-# args[3] is current.batch: 1:4 etc
 # venn is either "inter" for intersection of SIFT and PolyPhen, or "union" for the union of the two
 # type is either "all" for variants of all rarities in 1000 Genomes Project, or "uncommon" for only those <= 0.05
 # current.batch is one of the following batches of files: 1:4, 5:8, 9:12, 13:16, 17:20, 21:22
 
+#venn <- "inter"
+venn <- "union"
+type <- "all"
+#type <- "uncommon"
+current.batch <- 1:4
+#current.batch <- 5:8
+#current.batch <- 9:12
+#current.batch <- 13:16
+#current.batch <- 17:20
+#current.batch <- 21:22
+# local testing with one file per group# current.batch <- 1
+
 # Glob list of annotation files ----------------------------
 
 EH.m.files <- Sys.glob("EH*\\snps.split.table.hg19_multianno.txt")
-# testing - EH.m.files <- "EH.chr22.snps.split.table.hg19_multianno.txt"
-# ADNA.m.files <- "ADNA.chr22.snps.split.table.hg19_multianno.txt"
 ADNA.m.files <- Sys.glob("ADNA*\\.snps.split.table.hg19_multianno.txt")
 
 ADNA.header <- names(fread("/dcl01/barnes/data/adrneh/anno/ADNA-snp-cols.txt", sep="\t", data.table=F, header=T))
-#locally: ADNA.header <- names(fread("ADNA-snp-cols.txt", sep="\t", data.table=F, header=T))
+#ADNA.header <- names(fread("ADNA-snp-cols.txt", sep="\t", data.table=F, header=T))
 ADNA.sample.IDs <- ADNA.header[58:length(ADNA.header)]
 
 EH.header <- names(fread("/dcl01/barnes/data/adrneh/anno/EH-snp-cols.txt", sep="\t", data.table=F, header=T))
-# locally: EH.header <- names(fread("EH-snp-cols.txt", sep="\t", data.table=F, header=T))
+#EH.header <- names(fread("EH-snp-cols.txt", sep="\t", data.table=F, header=T))
 EH.sample.IDs <- EH.header[58:length(EH.header)]
 
 annovar.keep.cols <- c("Chr", "Start", "End", "Ref", "Alt", "Func.refGene", "Gene.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all", "ExAC_ALL")
@@ -196,9 +189,10 @@ AD.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/
 NA.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/NA_excl_failed.txt", data.table = F, header=F)))
 
 EH.samples <- c(t(fread("/dcl01/mathias/data/ADRN_EH/common_analysis/annotation/lplist-usable.txt", data.table = F, header=F)))
-#locally# EH.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/lplist-usable.txt", data.table =F, header=F)))
-# AD.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/AD_all_excl_failed.txt", data.table =F, header=F)))
-# NA.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/NA_excl_failed.txt", data.table =F, header=F)))
+
+#EH.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/lplist-usable.txt", data.table =F, header=F)))
+#AD.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/AD_all_excl_failed.txt", data.table =F, header=F)))
+#NA.samples <- c(t(fread("/Users/claire/Documents/adrneh/annovar/ADNA_EH_PIPELINE/NA_excl_failed.txt", data.table =F, header=F)))
 
 
 # the following joins the first nine columns and the samples that passed QC.
@@ -209,9 +203,9 @@ ADNA.cols <- c(annovar.keep.cols, AD.samples, NA.samples)
 
 ADNA.m.data <- subset(ADNA.m.data, select=c(ADNA.cols))
 
-  
+
 # Duplicating ADNA into AD and NA data.frames in order to use the standardized 3 sample groups in the carrier loop later. Next, subsetting for those actual sample IDs.
-  
+
 AD.m.data <- ADNA.m.data
 NA.m.data <- ADNA.m.data
 
@@ -236,12 +230,12 @@ simplifygeno <- function(n) {
     df[[i]] <- sub('0/0', 'non', df[[i]])
     df[[i]] <- sub('1/0', 'het', df[[i]])
     df[[i]] <- sub('1/1', 'hom', df[[i]])
-    df[[i]] <- sub('./0', 'non', df[[i]])
-    df[[i]] <- sub('0/.', 'non', df[[i]])
-    df[[i]] <- sub('1/.', 'het', df[[i]])
-    df[[i]] <- sub('./1', 'het', df[[i]])
-    df[[i]] <- sub('\\./\\.', 'non', df[[i]])
-    df[[i]] <- sub('\\.', 'non', df[[i]])
+    df[[i]] <- sub('./0', 'miss', df[[i]])
+    df[[i]] <- sub('0/.', 'miss', df[[i]])
+    df[[i]] <- sub('1/.', 'miss', df[[i]])
+    df[[i]] <- sub('./1', 'miss', df[[i]])
+    df[[i]] <- sub('\\./\\.', 'miss', df[[i]])
+    df[[i]] <- sub('\\.', 'miss', df[[i]])
     df[[i]] <- sub('0', 'non', df[[i]])
     df[[i]] <- sub('1', 'het', df[[i]])
   }
@@ -250,34 +244,39 @@ simplifygeno <- function(n) {
   df$het <- rowSums(df == "het")
   df$hom <- rowSums(df == "hom")
   df$non <- rowSums(df == "non")
+  df$miss <- rowSums(df == "miss")
+  df$sum <- rowSums(df == "het" | df == "hom")
   
-  x <- (length(df) -3)
+  # add column to show number of individuals with called genotypes
+  df$called <- df$non + df$sum
+  
+  x <- (length(df) - 6)
   
   # replace labels with number
   for(i in names(df[,c(15:x)])){
     df[[i]] <- sub('het', '1', df[[i]])
     df[[i]] <- sub('hom', '1', df[[i]])
     df[[i]] <- sub('non', '0', df[[i]])
+    df[[i]] <- sub('miss', 'NA', df[[i]])
   }
   
   # regular variant level sum
-  df$sum <- apply(df[,c(15:x)], 1, function(x) sum(as.numeric(x)))
+#  df$sum <- apply(na.omit( df[,c(15:x)] ), 1, function(x) sum(as.numeric(x)))
   
   # remove monomorphic sites
   df <- subset(df, df$sum != 0)
   
   # make sure there are no duplicate rows
   df <- unique(df)
-
+  
   # add key = chr-pos-alt ----------------
   df$KEY.1 <- paste(df$Chr, df$Start, sep = "-")
   df$KEY <- paste(df$KEY.1, df$Alt, sep="-")
   df <- subset(df, select= -c(KEY.1))
-    
+  
   # done
   return(df)
 }
-
 
 # EH.m.data$KEY.1 <- paste(EH.m.data$Chr, EH.m.data$Start, sep="-")
 # EH.m.data$KEY <- paste(EH.m.data$KEY.1, EH.m.data$Alt, sep="-")
@@ -299,19 +298,20 @@ setwd(current.dir)
 
 sample.names<-c("AD", "NA", "EH")
 
-#testing# sample.names <- c("EH")
 for (sample.name in sample.names){
   
   # add column of gene name for every variant-------------
   sample_multianno <- get(paste(sample.name, ".m.data", sep="")) # get multianno data for the sample group
   
   ## write out genelist per sample group --------
-  genelist <- data.frame(subset(sample_multianno, select=c("KEY", "Chr", "Start", "Gene.refGene", "Ref", "Alt", "sum", "het", "hom", "non")))
+  genelist <- data.frame(subset(sample_multianno, select=c("KEY", "Chr", "Start", "Gene.refGene", "Ref", "Alt", "sum", "het", "hom", "non", "miss", "called")))
   colnames(genelist)[6] <- paste(sample.name, "_alt", sep="")
   colnames(genelist)[7] <- paste(sample.name, "_variant_level_sum", sep="")
   colnames(genelist)[8] <- paste(sample.name, "_het", sep="") 
   colnames(genelist)[9] <- paste(sample.name, "_hom", sep="")
   colnames(genelist)[10] <- paste(sample.name, "_non", sep="")
+  colnames(genelist)[11] <- paste(sample.name, "_miss", sep="")
+  colnames(genelist)[12] <- paste(sample.name, "_called", sep="")
   
   batch.name <- paste(current.batch[1], current.batch[length(current.batch)], sep="-")
   out.filename <- paste(sample.name, batch.name, sep=".")
@@ -343,21 +343,20 @@ for (sample.name in sample.names){
   # carrier counting -----------
   
   for (i in 1:length(uniq)){
-    
     # make temporary data.frame with all variants in one gene name ---------
     merge.1gene <- subset(sample_multianno, Gene.refGene == paste(as.character(uniq[i])))
-    merge.1gene <- subset(merge.1gene, select=c(ncol(merge.1gene), 1:14, (ncol(merge.1gene)-1), (ncol(merge.1gene)-4), (ncol(merge.1gene)-3), (ncol(merge.1gene)-2), 15:(ncol(merge.1gene)-5)))
-    # these are the columns reorganized above: move end columns up so KEY is the first, then Chr Start End Ref [...] sum het hom non [genotypes].
+    merge.1gene <- subset(merge.1gene, select=c(ncol(merge.1gene), 1:14, (ncol(merge.1gene)-2), (ncol(merge.1gene)-6), (ncol(merge.1gene)-5), (ncol(merge.1gene)-4), (ncol(merge.1gene)-3), (ncol(merge.1gene)-1), 15:(ncol(merge.1gene)-7)))
+    # these are the columns reorganized above: move end columns up so KEY is the first, then Chr Start End Ref [annotations...] sum het hom non miss all_called [genotypes].
     
     # transpose merge.1gene to a new data.frame and count carriers per gene ------
     transposed <- data.frame(t(merge.1gene))
-    carrier <- apply(transposed[-c(1:19),,drop=F],1, function(x) sum(as.numeric(x)))
-    carrier <- c(rep(NA,19), carrier)
+    carrier <- rowSums(transposed[-c(1:21),,drop=FALSE] == "1")
+    carrier <- c(rep(NA,21), carrier)
     transposed$carrier <- carrier
     transposed$carrier <- ifelse(transposed$carrier > 1, 1, transposed$carrier)
     
     # get just gene name and carrier columns from transposed data.frame ----------
-    data<-c(as.character(transposed[,1][[8]]) , sum(as.numeric( as.character(transposed[-c(1:19),"carrier"] ))) , as.numeric(ncol(transposed)-1) )
+    data<-c(as.character(transposed[,1][[8]]) , sum(as.numeric( as.character(transposed[-c(1:21),"carrier"] ))) , as.numeric(ncol(transposed)-1) )
     data.frame.temp <- data.frame(t(data.frame(data, stringsAsFactors=FALSE)))
     names(data.frame.temp) = c("gene", col2, col3)
     
@@ -429,17 +428,17 @@ if (exists("EHADNA.master")){
   # KEY was added earlier.
   # These are the columns that I want to add to the master file for snps:
   subset.cols <- c("KEY", "Chr", "Start", "End", "Ref", "Alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "SIFT_pred", "Polyphen2_HDIV_pred", "1000g2015aug_all", "ExAC_ALL")
-
+  
   EH.m.data.subset <- subset(EH.m.data, select=c(subset.cols))
   ADNA.m.data.subset <- subset(ADNA.m.data, select=c(subset.cols))
   M.data.subset <- unique(rbind(EH.m.data.subset, ADNA.m.data.subset))
   EHADNA.master.anno <- merge(EHADNA.master, M.data.subset, by=c("KEY", "Chr", "Start", "Ref", "Gene.refGene"), all=T)
   
   # reorder cols
-  EHADNA.master.anno <- subset(EHADNA.master.anno, select=c("KEY", "Chr", "Start", "End", "Ref", "EH_alt", "ADNA_alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL", "SIFT_pred", "Polyphen2_HDIV_pred", "EH_carriers", "EH_variant_level_sum", "EH_num_variants", "EH_het", "EH_hom", "EH_non", "AD_carriers", "AD_variant_level_sum", "AD_num_variants", "AD_het", "AD_hom", "AD_non", "NA_carriers", "NA_variant_level_sum", "NA_num_variants", "NA_het", "NA_hom", "NA_non"))
+  EHADNA.master.anno <- subset(EHADNA.master.anno, select=c("KEY", "Chr", "Start", "End", "Ref", "EH_alt", "ADNA_alt", "Gene.refGene", "Func.refGene", "ExonicFunc.refGene", "AAChange.refGene", "snp147", "1000g2015aug_all", "ExAC_ALL", "SIFT_pred", "Polyphen2_HDIV_pred", "EH_carriers", "EH_variant_level_sum", "EH_num_variants", "EH_het", "EH_hom", "EH_non", "EH_miss", "EH_called", "AD_carriers", "AD_variant_level_sum", "AD_num_variants", "AD_het", "AD_hom", "AD_non", "AD_miss", "AD_called", "NA_carriers", "NA_variant_level_sum", "NA_num_variants", "NA_het", "NA_hom", "NA_non", "NA_miss", "NA_called"))
   
-
-
+  
+  
 }
 
 if (exists("EHADNA.master.anno")){
@@ -482,3 +481,4 @@ q(save = "no")
 # and so on for each qsub, R script pair. See beginning of script for arguments.
 # Submit with:
 # qsub -cwd -l mem_free=100G,h_vmem=101G,h_fsize=300G qsub-R.sh
+
