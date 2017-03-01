@@ -2,7 +2,7 @@
 # Purpose: here I use gvcftools' break-blocks to convert a genome VCF into a 'regular' VCF containing only variant sites, without reference blocks. Gvcftools is maintained at https://github.com/sequencing/gvcftools
 # Specifically, I need to create a VCF for all ADRN individuals for chrX, using the individual genome VCFs (one per person).
 # Dependencies: bcftools, vcftools, htslib, tabix, gvcftools, gzip, bgzip
-# Notes: $1 comes from submission script, which embarassingly parallelizes over individual IDs. Merging comes after this is done, with vcf-merge.
+# Notes: $1 comes from submission script, which embarassingly parallelizes over individual IDs. Merging comes after this is done, with vcf-merge. chrX-region.csv simply contains: chr1 1 156040895
 
 
 chroms=(chrX)
@@ -11,7 +11,7 @@ for chr in ${chroms[@]}
 do
   cd /dcl01/mathias/data/ADRN_EH/ADRN/transfer
 
-  gzip -dc ${1}.${chr}.genome.vcf.gz | /users/cmalley/apps/gvcftools-0.14/bin/./break_blocks --ref /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta > ${1}.${chr}.genome.break.vcf
+  gzip -dc ${1}.${chr}.genome.vcf.gz | /users/cmalley/apps/gvcftools-0.14/bin/./break_blocks --region-file chrX-region.csv --ref /dcl01/mathias/data/annovar/humandb/ucsc.hg19.fasta > ${1}.${chr}.genome.break.vcf
 
   bgzip -c ${1}.${chr}.genome.break.vcf > ${1}.${chr}.genome.break.vcf.gz
 
