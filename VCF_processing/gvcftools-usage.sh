@@ -5,7 +5,7 @@
 # Notes: $1 comes from submission script, which embarassingly parallelizes over individual IDs. Merging comes after this is done, with vcf-merge.
 
 
-chroms=(chrX) # usually I need to extract than one chr in this array
+chroms=(chrX)
 
 for chr in ${chroms[@]}
 do
@@ -17,15 +17,15 @@ do
 
   tabix -p vcf ${1}.${chr}.genome.break.vcf.gz
 
-  if [ -s ${1}.${chr}.genome.vcf.gz ]
+  if [ -s ${1}.${chr}.genome.break.vcf.gz ]
     then
+      vcftools --gzvcf ${1}.${chr}.genome.break.vcf.gz --chr ${chr} --recode --recode-INFO-all --minDP 7 --minGQ 30 --exclude-bed /dcl01/mathias/data/annovar/humandb/hg19_segdup.txt --out ${1}.${chr}.genome.break.filtered
 
-      vcftools --gzvcf ${1}.${chr}.genome.vcf.gz --chr ${chr} --recode --recode-INFO-all --minDP 7 --minGQ 30 --exclude-bed /dcl01/mathias/data/annovar/humandb/hg19_segdup.txt --out ${1}.${chr}.genome.break.filtered
-
-      bgzip -c -f ${1}.${chr}.genome.filtered.recode.vcf > ${1}.${chr}.genome.break.filtered.recode.vcf.gz
+      bgzip -c -f ${1}.${chr}.genome.break.filtered.recode.vcf > ${1}.${chr}.genome.break.filtered.recode.vcf.gz
 
       tabix -p vcf ${1}.${chr}.genome.break.filtered.recode.vcf.gz
 
   fi
 
 done
+
