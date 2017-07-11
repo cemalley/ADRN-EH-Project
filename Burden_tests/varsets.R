@@ -4,7 +4,6 @@ library(stringr)
 # Date: July 11, 2017
 # Purpose: generate four variant/gene sets for running in SKAT-O. Takes a PSEQ output file merged on phenotype comparison, and annotation data that is currently split by chromosome.
 
-
 # load pseq
   setwd("/dcl01/mathias1/data/ADRN_799_multiVCF_filled_filtered/assoc")
   pseq <- fread("ADRN_AD_NA_merged_qc_clean.txt", sep=" ", header=T, select=c(3, 36, 37))
@@ -16,7 +15,7 @@ library(stringr)
 #chrs <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22")
 
   #testing
-chrs <- c("21")
+chrs <- c("22")
 
 for (chr in chrs){
   # load anno
@@ -40,7 +39,7 @@ for (chr in chrs){
   nonsyn.damaging <- anno[((ExonicFunc.refGene =="nonsynonymous SNV" | ExonicFunc.refGene =="stopgain" | ExonicFunc.refGene =="stoploss") & (Polyphen2_HDIV_pred == "D" | SIFT_pred == "D")), c("Chr", "Start", "Gene.refGene")]
 
   #4. rare or novel, damaging
-  rare.novel.damaging <- anno[((ExonicFunc.refGene =="nonsynonymous SNV" | ExonicFunc.refGene =="stopgain" | ExonicFunc.refGene =="stoploss") & (Polyphen2_HDIV_pred == "D" | SIFT_pred == "D")), c("Chr", "Start", "Gene.refGene")]
+  rare.novel.damaging <- anno[((rarity == "rare" | novelty == "novel") & (Polyphen2_HDIV_pred == "D" | SIFT_pred == "D")), c("Chr", "Start", "Gene.refGene")]
 
   # split any multi-gene annotations into separate rows
   splitgene <- function(x){
